@@ -1,0 +1,36 @@
+small styling stuff to do later:
+ add a border around the svg 
+ make the hull colored differently 
+ show the points as dots -> make them always on top
+ be able to hover/click lines instead of points
+
+
+needed features:
+- check if flip is actually legal
+
+wanted features:
+- check if curr triangulation is delaunay 
+- click two points to flip the edge between them 
+- input box to input points (and either way def print a list of pts)
+
+
+what's a halfedge? 
+
+
+d3.polygonLength exists if i want to do the closeness-to-delaunay thingy
+
+maybe doing trees is the best way? 
+
+producing a non-delaunay triangulation: given two algorithms. first requires computing triangulation of convex polygon (which shoulddd be easy?) and second requires checking if a point is "visible" to another point 
+
+so the idea is probably - so every triangulation of S has the same number of triangles / edges. so have a list of those edges for delaunay and check/match those against whatever the current triangulation looks like to check if it's delaunay or not 
+
+for now the problem isn't that yet though - how can we click a line and have it go the other way? separate out the hull, make interior points gray on hover. a line is attached to two triangles, click it and that line disappears and add one at the other two corners of the two triangles
+
+I thiiiiink that means iterate through delau.trianglePolygons() and pull 
+
+
+the on hull check isn't gonna be enough, some triangulations will be impossible without being on the hull
+
+
+input: selecting an edge is real annoying bc of how I'm printing triangles instead of edges here, but maybe select two points? that's kinda easier even 
