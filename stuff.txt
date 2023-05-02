@@ -6,9 +6,10 @@ small styling stuff to do later:
 
 
 needed features:
-- check if flip is actually legal
+
 
 wanted features:
+- click to add a point 
 - check if curr triangulation is delaunay 
 - click two points to flip the edge between them 
 - input box to input points (and either way def print a list of pts)

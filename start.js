@@ -94,6 +94,16 @@ function getPath(pts) {
 
 console.log("hull points: ", hullpts)
 
+
+function tContainsPt(triangle, pt) {
+    let convertedT = [points[triangle[0]], points[triangle[1]], points[triangle[2]]]
+    let convertedpt = points[pt]
+
+    return d3.polygonContains(convertedT, convertedpt)
+}
+
+
+
 function flipEdge(edge) {
     console.log("attempting to flip edge ", edge)
 
@@ -142,6 +152,12 @@ function flipEdge(edge) {
     ]
 
     console.log("new triangles: ", newTs)
+
+    // test if edge is legal 
+    if (!tContainsPt(newTs[0], edge[1]) || !tContainsPt(newTs[1], edge[0]) ) {
+        console.log("quad is reflex")
+        return null
+    }
 
     // switch old triangles for new
     splitTriangles.splice(adjTindices[0], 1, newTs[0])
