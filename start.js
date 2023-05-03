@@ -3,8 +3,17 @@
 // const tri4 = [[0, 0], [0, 100],  [200,100], [50, 60]];
 // const delau4 = d3.Delaunay.from(tri4);
 
-const points = [[0,0], [100,0], [100, 100], [0, 100], [150,80], [50,200], [50,70]]
-const delau = d3.Delaunay.from(points)
+const expoints = [[0,0], [100,0], [100, 100], [0, 100], [150,80], [50,200], [50,70]]
+// const delau = d3.Delaunay.from(points)
+
+let POINTS;
+let DELAU;
+let HULLPTS;
+let TRIANGLES;
+let SPLITTRIANGLES = [];
+let TPATHS = [];
+let POINTSGROUP;
+let MODE = "flip"
 
 
 // Define SVG area dimensions
@@ -34,89 +43,102 @@ let chartGroup = svg.append("g")
   .attr("transform", `translate(${margin.left}, ${margin.top})`);
 
 
-const hullpts = delau.hull
-const triangles = delau.triangles
 
+function showTriangulation(pts) {
+    chartGroup.selectAll("path").remove()
+    chartGroup.selectAll("circle").remove()
 
-console.log("given triangles: ", triangles)
+    // ! check if <3 pts
 
-let splitTriangles = []
+    DELAU = d3.Delaunay.from(pts)
+    POINTS = pts // is this ok? 
+    HULLPTS = DELAU.hull
+    TRIANGLES = DELAU.triangles
 
-for (let j = 0; j < triangles.length; j += 3) {
-    let coord = triangles.slice(j, j+3)
-    //console.log("adding triangle", coord)
-    splitTriangles.push(coord)
-    //console.log("curr ST after push: ", splitTriangles)
+    console.log("given triangles: ", TRIANGLES)
+
+    SPLITTRIANGLES = []
+
+    for (let j = 0; j < TRIANGLES.length; j += 3) {
+        let coord = TRIANGLES.slice(j, j+3)
+        //console.log("adding triangle", coord)
+        SPLITTRIANGLES.push(coord)
+        //console.log("curr ST after push: ", SPLITTRIANGLES)
+    }
+
+    console.log("ending triangles:", SPLITTRIANGLES)
+
+    // each triangle gets a corresponding path drawn for it 
+    let TPATHS = []
+    SPLITTRIANGLES.forEach((t, i) => {
+        console.log("appending triangle ", t)
+        let p = getPath(t)
+        TPATHS.push(p)
+
+        chartGroup.append("path")
+        .attr("d", p)
+        .attr("id", "path" + i) // ????
+
+    })
+
+    console.log("path list: ", TPATHS)
+
+    // draw points
+    POINTSGROUP = chartGroup.selectAll("circle")
+        .data(POINTS)
+        .enter()
+        .append("circle")
+        .attr("cx", p => p[0])
+        .attr("cy", p => p[1])
+        .attr("r", 7)
+        .attr("ptloc", (p, i) => i)
+
+    
+    console.log("hull points: ", HULLPTS)
+
 }
-
-console.log("ending triangles:", splitTriangles)
-
-
-
-// each triangle gets a corresponding path drawn for it 
-let tPaths = []
-splitTriangles.forEach((t, i) => {
-    let p = getPath(t)
-    tPaths.push(p)
-
-    chartGroup.append("path")
-     .attr("d", p)
-     .attr("id", "path" + i) // ????
-
-})
-
-console.log("path list: ", tPaths)
-
-
-// draw points
-let pointsGroup = chartGroup.selectAll("circle")
-    .data(points)
-    .enter()
-    .append("circle")
-    .attr("cx", p => p[0])
-    .attr("cy", p => p[1])
-    .attr("r", 7)
-    .attr("ptloc", (p, i) => i)
 
 
 // note: only does 3 pts to make a triangle
 function getPath(pts) {
     let path = d3.path()
-    path.moveTo(points[pts[0]][0], points[pts[0]][1]) // 
-    path.lineTo(points[pts[1]][0], points[pts[1]][1])
-    path.lineTo(points[pts[2]][0], points[pts[2]][1])
+    path.moveTo(POINTS[pts[0]][0], POINTS[pts[0]][1]) // 
+    path.lineTo(POINTS[pts[1]][0], POINTS[pts[1]][1])
+    path.lineTo(POINTS[pts[2]][0], POINTS[pts[2]][1])
     path.closePath()
 
     return path.toString()
 }
 
-// func for flipping an edge
 
-console.log("hull points: ", hullpts)
 
 
 function tContainsPt(triangle, pt) {
-    let convertedT = [points[triangle[0]], points[triangle[1]], points[triangle[2]]]
-    let convertedpt = points[pt]
+    let convertedT = [POINTS[triangle[0]], POINTS[triangle[1]], POINTS[triangle[2]]]
+    let convertedpt = POINTS[pt]
+
+    //console.log("converted triangle pts: ", convertedT, "and interior pt: ", convertedpt)
 
     return d3.polygonContains(convertedT, convertedpt)
 }
 
+showTriangulation(expoints);
 
 
+// func for flipping an edge
 function flipEdge(edge) {
     console.log("attempting to flip edge ", edge)
 
     // check if edge is on convex hull // OK
     let onhull = true 
     
-    hullpts.forEach((pt, i) => {
+    HULLPTS.forEach((pt, i) => {
         if (pt === edge[0]) {
-            if (hullpts[i+1] === edge[1]) {
+            if (HULLPTS[i+1] === edge[1]) {
                 console.log("edge is on hull")
                 onhull = false
             }
-            if (i > 0 && hullpts[i-1] === edge[1]) {
+            if (i > 0 && HULLPTS[i-1] === edge[1]) {
                 console.log("edge is on hull")
                 onhull = false // might need to return again outside this?
             }
@@ -131,7 +153,7 @@ function flipEdge(edge) {
 
     let adjTriangles = []
     let adjTindices = [] // rename this tbh
-    splitTriangles.forEach((t, i) => {
+    SPLITTRIANGLES.forEach((t, i) => {
         if (t.includes(edge[0]) && t.includes(edge[1])) {
 
             // let delT = splitTriangles.splice(i, 1)
@@ -154,38 +176,59 @@ function flipEdge(edge) {
     console.log("new triangles: ", newTs)
 
     // test if edge is legal 
-    if (!tContainsPt(newTs[0], edge[1]) || !tContainsPt(newTs[1], edge[0]) ) {
+    console.log("testing if triangle ", newTs[0], " contains point ", edge[1], "returns ", tContainsPt(newTs[0], edge[1]))
+
+    if (tContainsPt(newTs[0], edge[1]) || tContainsPt(newTs[1], edge[0]) ) {
         console.log("quad is reflex")
         return null
     }
 
     // switch old triangles for new
-    splitTriangles.splice(adjTindices[0], 1, newTs[0])
-    splitTriangles.splice(adjTindices[1], 1, newTs[1])
+    SPLITTRIANGLES.splice(adjTindices[0], 1, newTs[0])
+    SPLITTRIANGLES.splice(adjTindices[1], 1, newTs[1])
 
-    console.log("old paths: ", tPaths)
+    console.log("old paths: ", TPATHS)
 
     console.log("new p0: ", getPath(newTs[0]))
 
     // switch old paths for new
-    tPaths.splice(adjTindices[0], 1, getPath(newTs[0]))
-    tPaths.splice(adjTindices[1], 1, getPath(newTs[1]))
+    TPATHS.splice(adjTindices[0], 1, getPath(newTs[0]))
+    TPATHS.splice(adjTindices[1], 1, getPath(newTs[1]))
 
     // can i do this? 
 
-    console.log("paths now changed to:", tPaths)
+    console.log("paths now changed to:", TPATHS)
 
-    d3.select("#path" + adjTindices[0]).attr("d", tPaths[adjTindices[0]])
-    d3.select("#path" + adjTindices[1]).attr("d", tPaths[adjTindices[1]])
+    d3.select("#path" + adjTindices[0]).attr("d", TPATHS[adjTindices[0]])
+    d3.select("#path" + adjTindices[1]).attr("d", TPATHS[adjTindices[1]])
 
 
 }
 
 
+d3.select("#addmode").on("click", (d) => MODE = "add")
+d3.select("#deletemode").on("click", (d) => MODE = "del")
+d3.select("#flip").on("click", (d) => MODE = "flip")
+
+
 let selectedInput = []
 
-pointsGroup.on("click", (d, i) => {
+POINTSGROUP.on("click", (d, i) => {
     console.log("clicked point ", d, i)
+
+    if (MODE === "add") {
+        return;
+    }
+
+    if (MODE === "del") {
+        POINTS.splice(i, 1)
+        console.log("deleting point ", d)
+        console.log("new points", POINTS)
+        showTriangulation(POINTS)
+        return;
+    }
+
+
     selectedInput.push(i)
     
     if (selectedInput.length > 1) {
@@ -207,6 +250,20 @@ pointsGroup.on("click", (d, i) => {
     }
 })
 
+
+// todo: some special stuff about adding triangles to the outside of the hull without retriangulating anything
+// chartGroup.on("click", d => {
+//     console.log("clicked point", d)
+
+//     if (MODE !== "add") {
+//         return null
+//     }
+
+//     POINTS.append(d)
+//     console.log("adding point to triangulation")
+//     showTriangulation(POINTS)
+
+// })
 
 
 

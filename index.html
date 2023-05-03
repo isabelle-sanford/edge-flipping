@@ -5,16 +5,36 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="X-UA-Compatible" content="ie=edge">
   <title>FLIP GRAPHING</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
     
+  <div class="container-fluid">
+
+  <br>
+  <div class="btn-group" role="group" aria-label="mode toggle">
+    <input type="radio" class="btn-check" name="btnradio" id="addmode" autocomplete="off">
+    <label class="btn btn-outline-primary" for="addmode">Add Points</label>
+  
+    <input type="radio" class="btn-check" name="btnradio" id="deletemode" autocomplete="off">
+    <label class="btn btn-outline-primary" for="deletemode">Delete Points</label>
+  
+    <input type="radio" class="btn-check" name="btnradio" id="flipmode" autocomplete="off" checked>
+    <label class="btn btn-outline-primary" for="flipmode">Flip Points</label>
+  </div>
+
     <p>input points go here</p>
     <input type="text" id="inputpoints">
     <div id="svg-area"></div>
     <p>instructions probably</p>
+
+
+  </div>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
   <script src="https://d3js.org/d3.v5.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/d3-delaunay@6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/d3-polygon@3"></script>
   <script src="start.js"></script>
 </body>
 </html>
