@@ -3,10 +3,10 @@
 // const tri4 = [[0, 0], [0, 100],  [200,100], [50, 60]];
 // const delau4 = d3.Delaunay.from(tri4);
 
-const expoints = [[0,0], [100,0], [100, 100], [0, 100], [150,80], [50,200], [50,70]]
+const expoints = [[0,0], [100,0], [100, 100], [0, 100], [150,80], [50,200], [50,70], [30, 110]]
 // const delau = d3.Delaunay.from(points)
 
-let POINTS;
+let POINTS = [];
 let DELAU;
 let HULLPTS;
 let TRIANGLES;
@@ -36,17 +36,29 @@ let svg = d3
   .select("#svg-area")
   .append("svg")
   .attr("height", svgHeight)
-  .attr("width", svgWidth);
+  .attr("width", svgWidth)
+  //.attr("style", "background-color:lightblue")
 
 
 let chartGroup = svg.append("g")
   .attr("transform", `translate(${margin.left}, ${margin.top})`);
 
+let background = chartGroup
+            .append("rect")
+            .attr("x", 0)
+            .attr("y", 0)
+            .attr("width", chartWidth)
+            .attr("height", chartHeight)
+            .attr("style", "fill:transparent")
+
+let ptsGroup = svg.append("g").attr("transform", `translate(${margin.left}, ${margin.top})`);
+POINTSGROUP = ptsGroup.selectAll("circle")
 
 
 function showTriangulation(pts) {
     chartGroup.selectAll("path").remove()
-    chartGroup.selectAll("circle").remove()
+    ptsGroup.selectAll("circle").remove()
+    POINTSGROUP.selectAll("circle").remove()
 
     // ! check if <3 pts
 
@@ -69,11 +81,11 @@ function showTriangulation(pts) {
     console.log("ending triangles:", SPLITTRIANGLES)
 
     // each triangle gets a corresponding path drawn for it 
-    let TPATHS = []
+    let tp = []
     SPLITTRIANGLES.forEach((t, i) => {
         console.log("appending triangle ", t)
         let p = getPath(t)
-        TPATHS.push(p)
+        tp.push(p)
 
         chartGroup.append("path")
         .attr("d", p)
@@ -81,10 +93,10 @@ function showTriangulation(pts) {
 
     })
 
-    console.log("path list: ", TPATHS)
+    
 
     // draw points
-    POINTSGROUP = chartGroup.selectAll("circle")
+    POINTSGROUP = ptsGroup.selectAll("circle")
         .data(POINTS)
         .enter()
         .append("circle")
@@ -93,7 +105,7 @@ function showTriangulation(pts) {
         .attr("r", 7)
         .attr("ptloc", (p, i) => i)
 
-    
+    TPATHS = tp
     console.log("hull points: ", HULLPTS)
 
 }
@@ -125,8 +137,11 @@ function tContainsPt(triangle, pt) {
 showTriangulation(expoints);
 
 
+
+
 // func for flipping an edge
 function flipEdge(edge) {
+    console.log("old paths: ", HULLPTS)
     console.log("attempting to flip edge ", edge)
 
     // check if edge is on convex hull // OK
@@ -176,7 +191,7 @@ function flipEdge(edge) {
     console.log("new triangles: ", newTs)
 
     // test if edge is legal 
-    console.log("testing if triangle ", newTs[0], " contains point ", edge[1], "returns ", tContainsPt(newTs[0], edge[1]))
+    //console.log("testing if triangle ", newTs[0], " contains point ", edge[1], "returns ", tContainsPt(newTs[0], edge[1]))
 
     if (tContainsPt(newTs[0], edge[1]) || tContainsPt(newTs[1], edge[0]) ) {
         console.log("quad is reflex")
@@ -201,7 +216,6 @@ function flipEdge(edge) {
 
     d3.select("#path" + adjTindices[0]).attr("d", TPATHS[adjTindices[0]])
     d3.select("#path" + adjTindices[1]).attr("d", TPATHS[adjTindices[1]])
-
 
 }
 
@@ -237,9 +251,10 @@ POINTSGROUP.on("click", (d, i) => {
         flipEdge(selectedInput)
         // change color black
         selectedInput = []
-        chartGroup.selectAll(".rectan").remove()
+        ptsGroup.selectAll(".rectan").remove()
     } else {
-        chartGroup
+        console.log("selected input is", selectedInput)
+        ptsGroup
             .append("rect")
             .attr("x", d[0] - 3)
             .attr("y", d[1] - 3)
@@ -250,20 +265,32 @@ POINTSGROUP.on("click", (d, i) => {
     }
 })
 
-
 // todo: some special stuff about adding triangles to the outside of the hull without retriangulating anything
-// chartGroup.on("click", d => {
-//     console.log("clicked point", d)
 
-//     if (MODE !== "add") {
-//         return null
-//     }
 
-//     POINTS.append(d)
-//     console.log("adding point to triangulation")
-//     showTriangulation(POINTS)
+chartGroup.on("click", function() {
 
-// })
+    let loc = d3.mouse(this)
+    console.log("location", loc)
+
+    let roundLoc = [Math.round(loc[0]), Math.round(loc[1])]
+
+    if (MODE !== "add") {
+        
+        console.log(POINTSGROUP)
+        return null
+    }
+
+    console.log("adding ", roundLoc, " to points ", POINTS)
+    POINTS.push(roundLoc)
+    console.log("adding point to triangulation")
+    showTriangulation(POINTS)
+
+    POINTSGROUP = ptsGroup.selectAll("circle")
+    POINTSGROUP.attr
+
+})
+
 
 
 

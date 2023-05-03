@@ -10,10 +10,11 @@
 </head>
 <body>
     
-  <div class="container-fluid">
+  <div class="container">
 
   <br>
-  <div class="btn-group" role="group" aria-label="mode toggle">
+  <div class="row align-self-center">
+    <div class="btn-group" role="group" aria-label="mode toggle">
     <input type="radio" class="btn-check" name="btnradio" id="addmode" autocomplete="off">
     <label class="btn btn-outline-primary" for="addmode">Add Points</label>
   
@@ -23,10 +24,17 @@
     <input type="radio" class="btn-check" name="btnradio" id="flipmode" autocomplete="off" checked>
     <label class="btn btn-outline-primary" for="flipmode">Flip Points</label>
   </div>
+  </div>
+  
 
     <p>input points go here</p>
     <input type="text" id="inputpoints">
-    <div id="svg-area"></div>
+
+    <div class="row align-items-center border border-primary">
+      <div id="svg-area"></div>
+    </div>
+
+    
     <p>instructions probably</p>
 
 
@@ -35,6 +43,7 @@
   <script src="https://d3js.org/d3.v5.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/d3-delaunay@6"></script>
   <script src="https://cdn.jsdelivr.net/npm/d3-polygon@3"></script>
+  <script src="https://d3js.org/d3-selection.v1.min.js"></script>
   <script src="start.js"></script>
 </body>
 </html>

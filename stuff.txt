@@ -38,8 +38,27 @@ the on hull check isn't gonna be enough, some triangulations will be impossible 
 input: selecting an edge is real annoying bc of how I'm printing triangles instead of edges here, but maybe select two points? that's kinda easier even 
 
 
-problems: 
-- delete breaks showtriangulation
-- flipedge always returns reflex quad - fixed
+
 
 deleting points now works
+adding now works but I can no longer delete or flip because the events are mixed up
+
+ideally would like to put a border around the svg area 
+
+
+
+rectangle no longer appearing again (but flips work)
+points dont disappear on deletion / sometimes dont appear on creation 
+flipping points works til you add one and then no longer does
+
+
+let background = chartGroup
+            .append("rect")
+            .attr("x", 0)
+            .attr("y", 0)
+            .attr("width", chartWidth)
+            .attr("height", chartHeight)
+            .attr("color", "blue")
+
+
+ok so showTriangulation is fucking up POINTSGROuP somehow so the event no longer functions 

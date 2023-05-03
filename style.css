@@ -6,3 +6,9 @@ path {
     fill: lightpink;
     stroke: black;
 }
+
+svg {
+    border: 2cm;
+    border-color: black;
+    background-color: lightblue;
+}
