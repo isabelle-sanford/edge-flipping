@@ -1,19 +1,18 @@
 small styling stuff to do later:
  add a border around the svg 
  make the hull colored differently 
- show the points as dots -> make them always on top
  be able to hover/click lines instead of points
+ show point coord on hover
 
 
 needed features:
 
 
 wanted features:
-- click to add a point 
 - check if curr triangulation is delaunay 
-- click two points to flip the edge between them 
 - input box to input points (and either way def print a list of pts)
 - clear all pts button
+- handle deletion when only 2 points exist
 
 
 what's a halfedge? 
@@ -62,3 +61,7 @@ let background = chartGroup
 
 
 ok so showTriangulation is fucking up POINTSGROuP somehow so the event no longer functions 
+
+completed features:
+- click to add a point 
+show the points as dots -> make them always on top

@@ -3,7 +3,7 @@
 // const tri4 = [[0, 0], [0, 100],  [200,100], [50, 60]];
 // const delau4 = d3.Delaunay.from(tri4);
 
-const expoints = [[0,0], [100,0], [100, 100], [0, 100], [150,80], [50,200], [50,70], [30, 110]]
+const expoints = [[10,10], [100,10], [100, 100], [10, 100], [150,80], [50,200], [50,70], [30, 110]]
 // const delau = d3.Delaunay.from(points)
 
 let POINTS = [];
@@ -41,7 +41,7 @@ let svg = d3
 
 
 let chartGroup = svg.append("g")
-  .attr("transform", `translate(${margin.left}, ${margin.top})`);
+  .attr("transform", `translate(${margin.left}, +${margin.top})`);
 
 let background = chartGroup
             .append("rect")
@@ -49,16 +49,29 @@ let background = chartGroup
             .attr("y", 0)
             .attr("width", chartWidth)
             .attr("height", chartHeight)
-            .attr("style", "fill:transparent")
+            .attr("style", "fill:aqua")
 
 let ptsGroup = svg.append("g").attr("transform", `translate(${margin.left}, ${margin.top})`);
 POINTSGROUP = ptsGroup.selectAll("circle")
 
 
+// note: only does 3 pts to make a triangle
+function getPath(pts) {
+    let path = d3.path()
+    path.moveTo(POINTS[pts[0]][0], POINTS[pts[0]][1]) // 
+    path.lineTo(POINTS[pts[1]][0], POINTS[pts[1]][1])
+    path.lineTo(POINTS[pts[2]][0], POINTS[pts[2]][1])
+    path.closePath()
+
+    return path.toString()
+}
+
+// DELAUNAY
 function showTriangulation(pts) {
-    chartGroup.selectAll("path").remove()
-    ptsGroup.selectAll("circle").remove()
-    POINTSGROUP.selectAll("circle").remove()
+    console.log("calculating triangulation...");
+    chartGroup.selectAll("path").remove();
+    ptsGroup.selectAll("circle").remove();
+    //POINTSGROUP.selectAll("circle").remove()
 
     // ! check if <3 pts
 
@@ -83,7 +96,7 @@ function showTriangulation(pts) {
     // each triangle gets a corresponding path drawn for it 
     let tp = []
     SPLITTRIANGLES.forEach((t, i) => {
-        console.log("appending triangle ", t)
+        //console.log("appending triangle ", t)
         let p = getPath(t)
         tp.push(p)
 
@@ -93,7 +106,6 @@ function showTriangulation(pts) {
 
     })
 
-    
 
     // draw points
     POINTSGROUP = ptsGroup.selectAll("circle")
@@ -106,23 +118,16 @@ function showTriangulation(pts) {
         .attr("ptloc", (p, i) => i)
 
     TPATHS = tp
-    console.log("hull points: ", HULLPTS)
+    //console.log("hull points: ", HULLPTS)
 
 }
 
-
-// note: only does 3 pts to make a triangle
-function getPath(pts) {
-    let path = d3.path()
-    path.moveTo(POINTS[pts[0]][0], POINTS[pts[0]][1]) // 
-    path.lineTo(POINTS[pts[1]][0], POINTS[pts[1]][1])
-    path.lineTo(POINTS[pts[2]][0], POINTS[pts[2]][1])
-    path.closePath()
-
-    return path.toString()
+function triangleSplit(pts) {
+    
 }
 
 
+showTriangulation(expoints);
 
 
 function tContainsPt(triangle, pt) {
@@ -133,11 +138,6 @@ function tContainsPt(triangle, pt) {
 
     return d3.polygonContains(convertedT, convertedpt)
 }
-
-showTriangulation(expoints);
-
-
-
 
 // func for flipping an edge
 function flipEdge(edge) {
@@ -227,21 +227,59 @@ d3.select("#flip").on("click", (d) => MODE = "flip")
 
 let selectedInput = []
 
-POINTSGROUP.on("click", (d, i) => {
-    console.log("clicked point ", d, i)
+POINTSGROUP.on("click", (d, i) => clickPoint(d,i) )// => {
+//     console.log("clicked point ", d, i)
+
+//     if (MODE === "add") {
+//         return;
+//     }
+
+//     if (MODE === "del") {
+//         POINTS.splice(i, 1)
+//         console.log("deleting point ", d)
+//         console.log("new points", POINTS)
+//         showTriangulation(POINTS)
+//         return;
+//     }
+
+
+//     selectedInput.push(i)
+    
+//     if (selectedInput.length > 1) {
+//         console.log("received points ", selectedInput)
+//         // should probs check that the edge actually exists
+//         flipEdge(selectedInput)
+//         // change color black
+//         selectedInput = []
+//         ptsGroup.selectAll(".rectan").remove()
+//     } else {
+//         console.log("selected input is", selectedInput)
+//         ptsGroup
+//             .append("rect")
+//             .attr("x", d[0] - 3)
+//             .attr("y", d[1] - 3)
+//             .attr("width", 6)
+//             .attr("height", 6)
+//             .attr("fill", "red")
+//             .classed("rectan", true)
+//     }
+// })
+
+function clickPoint(d, i) {
+    console.log("clicked point ", d, i, MODE)
 
     if (MODE === "add") {
+        console.log("add mode");
         return;
     }
 
     if (MODE === "del") {
-        POINTS.splice(i, 1)
-        console.log("deleting point ", d)
-        console.log("new points", POINTS)
-        showTriangulation(POINTS)
+        console.log("del mode");
+        delPoint(d,i)
         return;
     }
 
+    console.log("flip mode");
 
     selectedInput.push(i)
     
@@ -263,7 +301,33 @@ POINTSGROUP.on("click", (d, i) => {
             .attr("fill", "red")
             .classed("rectan", true)
     }
+}
+
+function delPoint(d, i) {
+    console.log("pointsgroup before deletion: ", POINTSGROUP)
+    POINTS.splice(i, 1)
+    console.log("deleting point ", d)
+    console.log("new points", POINTS)
+    showTriangulation(POINTS)
+    console.log("pointsgroup after deletion: ", POINTSGROUP)
+
+    POINTSGROUP.on("click", (d, i) => clickPoint(d,i) )
+    return;
+}
+
+d3.select("#addmode").on("click", (d) => {
+    MODE = "add"
+    console.log("mode changed to add ", MODE)
+}) 
+d3.select("#deletemode").on("click", (d) => {
+    MODE = "del"
+    console.log("mode changed to del ", MODE)
 })
+d3.select("#flipmode").on("click", (d) => {
+    MODE = "flip"
+    console.log("mode changed to flip ", MODE)
+})
+
 
 // todo: some special stuff about adding triangles to the outside of the hull without retriangulating anything
 
@@ -286,8 +350,9 @@ chartGroup.on("click", function() {
     console.log("adding point to triangulation")
     showTriangulation(POINTS)
 
-    POINTSGROUP = ptsGroup.selectAll("circle")
-    POINTSGROUP.attr
+    //POINTSGROUP = ptsGroup.selectAll("circle")
+    //POINTSGROUP.attr
+    POINTSGROUP.on("click", (d, i) => clickPoint(d,i) )
 
 })
 
