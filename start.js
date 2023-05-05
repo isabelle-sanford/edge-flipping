@@ -3,7 +3,7 @@
 // const tri4 = [[0, 0], [0, 100],  [200,100], [50, 60]];
 // const delau4 = d3.Delaunay.from(tri4);
 
-const expoints = [[10,10], [100,10], [100, 100], [10, 100], [150,80], [50,200], [50,70], [30, 110]]
+const expoints = [[20,20], [200,20], [200, 200], [20, 200], [300,160], [100,400], [100,140], [60, 220]]
 // const delau = d3.Delaunay.from(points)
 
 let POINTS = [];
@@ -67,13 +67,12 @@ function getPath(pts) {
 }
 
 // DELAUNAY
-function showTriangulation(pts) {
+function delauTriangulation(pts) {
     console.log("calculating triangulation...");
     chartGroup.selectAll("path").remove();
     ptsGroup.selectAll("circle").remove();
-    //POINTSGROUP.selectAll("circle").remove()
 
-    // ! check if <3 pts
+    // TODO check if <3 pts
 
     DELAU = d3.Delaunay.from(pts)
     POINTS = pts // is this ok? 
@@ -122,12 +121,78 @@ function showTriangulation(pts) {
 
 }
 
-function triangleSplit(pts) {
+function splitTriangulation(pts) {
+    console.log("triangulating via triangle-splitting...")
+    chartGroup.selectAll("path").remove();
+    ptsGroup.selectAll("circle").remove();
+
+
+    DELAU = d3.Delaunay.from(pts)
+    POINTS = pts // is this ok? 
+    HULLPTS = DELAU.hull
+    //TRIANGLES = DELAU.triangles
+
+    SPLITTRIANGLES = []
     
+    for (i = 1; i < HULLPTS.length - 1; i++) { // ! check bounds
+        let nextT = [HULLPTS[0], HULLPTS[i], HULLPTS[i+1]];
+        SPLITTRIANGLES.push(nextT);
+        
+    }
+
+    console.log("hull triangulation: ", SPLITTRIANGLES)
+    
+    POINTS.forEach((p,i) => { // p = [x,y], i = 4
+        if (HULLPTS.includes(i)) {return}
+
+        let inT; // which triangle point p is inside
+        let inTidx;
+        SPLITTRIANGLES.forEach((t,idx) => { // t = [1, 2, 3]
+            if (tContainsPt(t, i)) {
+                inT = t;
+                inTidx = idx;
+            }
+        })
+        
+        // remove original triangle and add three with two points of original plus new pt
+        SPLITTRIANGLES.splice(inTidx, 1, [i, inT[0], inT[1]], [i, inT[1], inT[2]], [i, inT[0], inT[2]])
+
+    })
+
+    console.log("triangulation after splitting: ", SPLITTRIANGLES);
+
+    // same as delaunay after this ----
+
+    // each triangle gets a corresponding path drawn for it 
+    let tp = []
+    SPLITTRIANGLES.forEach((t, i) => {
+        //console.log("appending triangle ", t)
+        let p = getPath(t)
+        tp.push(p)
+
+        chartGroup.append("path")
+        .attr("d", p)
+        .attr("id", "path" + i) // ????
+
+    })
+
+
+    // draw points
+    POINTSGROUP = ptsGroup.selectAll("circle")
+        .data(POINTS)
+        .enter()
+        .append("circle")
+        .attr("cx", p => p[0])
+        .attr("cy", p => p[1])
+        .attr("r", 7)
+        .attr("ptloc", (p, i) => i)
+
+    TPATHS = tp
+
 }
 
 
-showTriangulation(expoints);
+splitTriangulation(expoints);
 
 
 function tContainsPt(triangle, pt) {
@@ -308,7 +373,7 @@ function delPoint(d, i) {
     POINTS.splice(i, 1)
     console.log("deleting point ", d)
     console.log("new points", POINTS)
-    showTriangulation(POINTS)
+    splitTriangulation(POINTS)
     console.log("pointsgroup after deletion: ", POINTSGROUP)
 
     POINTSGROUP.on("click", (d, i) => clickPoint(d,i) )
@@ -348,7 +413,7 @@ chartGroup.on("click", function() {
     console.log("adding ", roundLoc, " to points ", POINTS)
     POINTS.push(roundLoc)
     console.log("adding point to triangulation")
-    showTriangulation(POINTS)
+    splitTriangulation(POINTS)
 
     //POINTSGROUP = ptsGroup.selectAll("circle")
     //POINTSGROUP.attr
