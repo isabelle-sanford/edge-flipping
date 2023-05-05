@@ -12,30 +12,49 @@
     
   <div class="container">
 
-  <br>
-  <div class="row align-self-center">
-    <div class="btn-group" role="group" aria-label="mode toggle">
-    <input type="radio" class="btn-check" name="btnradio" id="addmode" autocomplete="off">
-    <label class="btn btn-outline-primary" for="addmode">Add Points</label>
-  
-    <input type="radio" class="btn-check" name="btnradio" id="deletemode" autocomplete="off">
-    <label class="btn btn-outline-primary" for="deletemode">Delete Points</label>
-  
-    <input type="radio" class="btn-check" name="btnradio" id="flipmode" autocomplete="off" checked>
-    <label class="btn btn-outline-primary" for="flipmode">Flip Points</label>
-  </div>
-  </div>
-  
-
-    <p>input points go here</p>
-    <input type="text" id="inputpoints">
-
-    <div class="row align-items-center border border-primary">
-      <div id="svg-area"></div>
+    <div class="row">
+      <h2>Edge Flipping</h2>
     </div>
 
+    <div class="row">
+      <p>Instructions: click on two points to flip the edge between them. It will do nothing if the edge is invalid (i.e. on the hull or if the quad is reflex). When in 'Add Points' mode, click anywhere in the light blue area to add a new point. Note that this will reset the triangulation (and will not keep any changes you've made, even if that's possible in theory). If the current triangulation is Delaunay, a message will display below the graph indicating as such. </p>
+
+      <p>More information HERE[LINK TO REPORT]</p>
+    </div>
+
+  <div class="row">
+    <div class="col p-3">
+      
+        <div class="btn-group " role="group" aria-label="mode toggle">
+          <input type="radio" class="btn-check" name="btnradio" id="addmode" autocomplete="off">
+          <label class="btn btn-outline-primary" for="addmode">Add Points</label>
+        
+          <input type="radio" class="btn-check" name="btnradio" id="deletemode" autocomplete="off">
+          <label class="btn btn-outline-primary" for="deletemode">Delete Points</label>
+        
+          <input type="radio" class="btn-check" name="btnradio" id="flipmode" autocomplete="off" checked>
+          <label class="btn btn-outline-primary" for="flipmode">Flip Points</label>
+        </div>
+      
+      
+    </div>
+  </div>
+  <div class="row">
+    <div class="col mx-auto">
+      <div id="svg-area"></div>
+    </div>
+  </div>
+
+    <div class="row">
+      <div id="delaunay-indicator"></div>
+    </div>
+  </div>
+  
+  
+
     
-    <p>instructions probably</p>
+
+    
 
 
   </div>

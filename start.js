@@ -3,7 +3,7 @@
 // const tri4 = [[0, 0], [0, 100],  [200,100], [50, 60]];
 // const delau4 = d3.Delaunay.from(tri4);
 
-const expoints = [[20,20], [200,20], [200, 200], [20, 180], [300,160], [100,400]]//, [100,140], [60, 220]]
+const expoints = [[40,40], [200,40], [200, 200], [40, 180], [300,160], [100,400], [100,140], [60, 220]]
 // const delau = d3.Delaunay.from(points)
 
 let POINTS = [];
@@ -13,7 +13,8 @@ let TRIANGLES;
 let SPLITTRIANGLES = [];
 let TPATHS = [];
 let POINTSGROUP;
-let MODE = "flip"
+let MODE = "flip";
+let selectedInput = [];
 
 let EDGES = []; // [[neightbors of pt 0], [neighbors of pt 1], ...]
 
@@ -23,10 +24,10 @@ const svgHeight = 500;
 
 // Define the chart's margins as an object
 const margin = {
-  top: 30,
-  right: 30,
-  bottom: 30,
-  left: 30,
+  top: 20,
+  right: 20,
+  bottom: 20,
+  left: 20,
 };
 
 const chartWidth = svgWidth - margin.left - margin.right;
@@ -51,7 +52,7 @@ let background = chartGroup
             .attr("y", 0)
             .attr("width", chartWidth)
             .attr("height", chartHeight)
-            .attr("style", "fill:aqua")
+            .attr("style", "fill:lightblue")
 
 let ptsGroup = svg.append("g").attr("transform", `translate(${margin.left}, ${margin.top})`);
 POINTSGROUP = ptsGroup.selectAll("circle")
@@ -133,6 +134,7 @@ function splitTriangulation(pts) {
     DELAU = d3.Delaunay.from(pts)
     POINTS = pts // is this ok? 
     HULLPTS = DELAU.hull
+    selectedInput = [];
     //TRIANGLES = DELAU.triangles
 
     EDGES = []
@@ -201,25 +203,34 @@ function splitTriangulation(pts) {
         .append("circle")
         .attr("cx", p => p[0])
         .attr("cy", p => p[1])
-        .attr("r", 9)
+        .attr("r", 10)
         //.attr("text", (p, i) => i)
 
 
         // note: breaks on deletion
-    ptsGroup.selectAll("text")
-        .data(POINTS)
-        .enter()
-        .append("text")
-        .attr("x", p => p[0])
-        .attr("y", p => p[1])
-        .html((p, i) => i)
-        .attr("fill", "lightgreen")
-        .attr("font-weight", "bold")
-        .attr("text-anchor", "middle")
-        .attr("dominant-baseline", "middle")
-        .attr("font-size", 14)
+    // ptsGroup.selectAll("text")
+    //     .data(POINTS)
+    //     .enter()
+    //     .append("text")
+    //     .attr("x", p => p[0])
+    //     .attr("y", p => p[1])
+    //     .html((p, i) => i)
+    //     .attr("fill", "lightgreen")
+    //     .attr("font-weight", "bold")
+    //     .attr("text-anchor", "middle")
+    //     .attr("dominant-baseline", "middle")
+    //     .attr("font-size", 12)
 
     TPATHS = tp
+
+
+    // maybe split this bit into its own small function (bc also used at end of flipEdge)
+    let delauText = d3.select("#delaunay-indicator")
+    if (isDelau()) {
+        delauText.html("<p>This is a Delaunay triangulation!<p>");
+    } else {
+        delauText.html("")
+    }
 
 }
 
@@ -320,6 +331,13 @@ function flipEdge(edge) {
     console.log("edges once flipped:", EDGES)
 
     console.log("isDelau:", isDelau());
+
+    let delauText = d3.select("#delaunay-indicator")
+    if (isDelau()) {
+        delauText.html("<p>This is a Delaunay triangulation!<p>");
+    } else {
+        delauText.html("")
+    }
 }
 
 
@@ -330,6 +348,10 @@ function isDelau() {
     POINTS.forEach(p => {delEdges.push([])}) // i guess
 
     // console.log("delEdges initially", delEdges)
+
+    if (POINTS.length < 3) {
+        return false;
+    }
 
     for (let j = 0; j < TRIANGLES.length; j+= 3) {
         if (!delEdges[TRIANGLES[j]].includes(TRIANGLES[j+1])) {
@@ -376,7 +398,7 @@ d3.select("#deletemode").on("click", (d) => MODE = "del")
 d3.select("#flip").on("click", (d) => MODE = "flip")
 
 
-let selectedInput = []
+
 
 POINTSGROUP.on("click", (d, i) => clickPoint(d,i) )// => {
 //     console.log("clicked point ", d, i)
@@ -455,12 +477,12 @@ function clickPoint(d, i) {
 }
 
 function deletePoint(d, i) {
-    console.log("pointsgroup before deletion: ", POINTSGROUP)
+    //console.log("pointsgroup before deletion: ", POINTSGROUP)
     POINTS.splice(i, 1)
     console.log("deleting point ", d)
-    console.log("new points", POINTS)
+    //console.log("new points", POINTS)
     splitTriangulation(POINTS)
-    console.log("pointsgroup after deletion: ", POINTSGROUP)
+    //console.log("pointsgroup after deletion: ", POINTSGROUP)
 
     POINTSGROUP.on("click", (d, i) => clickPoint(d,i) )
     return;

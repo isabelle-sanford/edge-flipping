@@ -1,21 +1,18 @@
 small styling stuff to do later:
- add a border around the svg 
  make the hull colored differently 
- be able to hover/click lines instead of points
  show point coord on hover
  when one pt is selected for flipping, highlight adjacent pts
+ nicer 'it's delaunay' thingy
 
 
 needed features:
 
 
 wanted features:
-- show when thing is delaunay?
 - input box to input points (and either way def print a list of pts)
 - clear all pts button
-- handle deletion when only 2 points exist
 - when flipping, check if edges. actually exist
-
+-  be able to hover/click lines instead of points
 
 what's a halfedge? 
 
@@ -68,5 +65,7 @@ completed features:
 - click to add a point 
 show the points as dots -> make them always on top
 - check if curr triangulation is delaunay 
+- handle deletion when only 2 points exist
+ add a border around the svg 
 
 had some kind of error where adjTriangles wasn't filling but can't replicate
