@@ -11,3 +11,7 @@ svg {
     border-color: black;
     background-color: lightblue;
 }
+
+circle:hover {
+    fill:gray
+}

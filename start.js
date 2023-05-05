@@ -3,7 +3,7 @@
 // const tri4 = [[0, 0], [0, 100],  [200,100], [50, 60]];
 // const delau4 = d3.Delaunay.from(tri4);
 
-const expoints = [[20,20], [200,20], [200, 200], [20, 200], [300,160], [100,400], [100,140], [60, 220]]
+const expoints = [[20,20], [200,20], [200, 200], [20, 180], [300,160], [100,400]]//, [100,140], [60, 220]]
 // const delau = d3.Delaunay.from(points)
 
 let POINTS = [];
@@ -15,6 +15,7 @@ let TPATHS = [];
 let POINTSGROUP;
 let MODE = "flip"
 
+let EDGES = []; // [[neightbors of pt 0], [neighbors of pt 1], ...]
 
 // Define SVG area dimensions
 const svgWidth = 500;
@@ -43,6 +44,7 @@ let svg = d3
 let chartGroup = svg.append("g")
   .attr("transform", `translate(${margin.left}, +${margin.top})`);
 
+  // does this get used
 let background = chartGroup
             .append("rect")
             .attr("x", 0)
@@ -66,7 +68,7 @@ function getPath(pts) {
     return path.toString()
 }
 
-// DELAUNAY
+// DELAUNAY - not used(?)
 function delauTriangulation(pts) {
     console.log("calculating triangulation...");
     chartGroup.selectAll("path").remove();
@@ -121,17 +123,19 @@ function delauTriangulation(pts) {
 
 }
 
+// triangulate with triangle-splitting algorithm
 function splitTriangulation(pts) {
     console.log("triangulating via triangle-splitting...")
     chartGroup.selectAll("path").remove();
     ptsGroup.selectAll("circle").remove();
-
+    
 
     DELAU = d3.Delaunay.from(pts)
     POINTS = pts // is this ok? 
     HULLPTS = DELAU.hull
     //TRIANGLES = DELAU.triangles
 
+    EDGES = []
     SPLITTRIANGLES = []
     
     for (i = 1; i < HULLPTS.length - 1; i++) { // ! check bounds
@@ -143,6 +147,7 @@ function splitTriangulation(pts) {
     console.log("hull triangulation: ", SPLITTRIANGLES)
     
     POINTS.forEach((p,i) => { // p = [x,y], i = 4
+        EDGES.push([]) // to make sure EDGES is length of # of points
         if (HULLPTS.includes(i)) {return}
 
         let inT; // which triangle point p is inside
@@ -165,7 +170,7 @@ function splitTriangulation(pts) {
 
     // each triangle gets a corresponding path drawn for it 
     let tp = []
-    SPLITTRIANGLES.forEach((t, i) => {
+    SPLITTRIANGLES.forEach((t, i) => { // [1, 2, 3], i (path #)
         //console.log("appending triangle ", t)
         let p = getPath(t)
         tp.push(p)
@@ -174,7 +179,19 @@ function splitTriangulation(pts) {
         .attr("d", p)
         .attr("id", "path" + i) // ????
 
+
+        // if edge is not recorded in EDGES, record it
+        // this is questionable but works
+        if (!EDGES[t[0]].includes(t[1])) {EDGES[t[0]].push(t[1])}
+        if (!EDGES[t[0]].includes(t[2])) {EDGES[t[0]].push(t[2])}
+        if (!EDGES[t[1]].includes(t[0])) {EDGES[t[1]].push(t[0])}
+        if (!EDGES[t[1]].includes(t[2])) {EDGES[t[1]].push(t[2])}
+        if (!EDGES[t[2]].includes(t[0])) {EDGES[t[2]].push(t[0])}
+        if (!EDGES[t[2]].includes(t[1])) {EDGES[t[2]].push(t[1])}
+
     })
+
+    console.log("edges recorded:", EDGES);
 
 
     // draw points
@@ -184,8 +201,23 @@ function splitTriangulation(pts) {
         .append("circle")
         .attr("cx", p => p[0])
         .attr("cy", p => p[1])
-        .attr("r", 7)
-        .attr("ptloc", (p, i) => i)
+        .attr("r", 9)
+        //.attr("text", (p, i) => i)
+
+
+        // note: breaks on deletion
+    ptsGroup.selectAll("text")
+        .data(POINTS)
+        .enter()
+        .append("text")
+        .attr("x", p => p[0])
+        .attr("y", p => p[1])
+        .html((p, i) => i)
+        .attr("fill", "lightgreen")
+        .attr("font-weight", "bold")
+        .attr("text-anchor", "middle")
+        .attr("dominant-baseline", "middle")
+        .attr("font-size", 14)
 
     TPATHS = tp
 
@@ -206,8 +238,10 @@ function tContainsPt(triangle, pt) {
 
 // func for flipping an edge
 function flipEdge(edge) {
-    console.log("old paths: ", HULLPTS)
+    //console.log(HULLPTS)
     console.log("attempting to flip edge ", edge)
+
+    // CHECK IF EDGE ACTUALLY EXISTS LOL
 
     // check if edge is on convex hull // OK
     let onhull = true 
@@ -231,33 +265,28 @@ function flipEdge(edge) {
         return null
     }
 
-    let adjTriangles = []
-    let adjTindices = [] // rename this tbh
+    // quad is tirangles [a, e0, e1], [b, e0, e1]
+    let adjPoints = [] // [a,b] 
+    let adjTindices = [] // indices of triangles within splittriangles //  rename this?
     SPLITTRIANGLES.forEach((t, i) => {
         if (t.includes(edge[0]) && t.includes(edge[1])) {
 
-            // let delT = splitTriangles.splice(i, 1)
-            // console.log("deleting triangle", delT)
+            let newpt = t.filter(pt => pt !== edge[0] && pt !== edge[1]) // [a]
 
-            let newpt = t.filter(pt => pt !== edge[0] && pt !== edge[1])
-
-            adjTriangles.push(newpt)
+            adjPoints.push(newpt[0]) // a
             adjTindices.push(i)
         }
     })
-    console.log("adj points: ", adjTriangles)
-    console.log("adj indices: ", adjTindices)
 
+    // [a, b, e0], [a, b, e1]
     let newTs = [
-        [adjTriangles[0][0], adjTriangles[1][0], edge[0]], 
-        [adjTriangles[0][0], adjTriangles[1][0], edge[1]]
+        [adjPoints[0], adjPoints[1], edge[0]], 
+        [adjPoints[0], adjPoints[1], edge[1]]
     ]
 
     console.log("new triangles: ", newTs)
 
     // test if edge is legal 
-    //console.log("testing if triangle ", newTs[0], " contains point ", edge[1], "returns ", tContainsPt(newTs[0], edge[1]))
-
     if (tContainsPt(newTs[0], edge[1]) || tContainsPt(newTs[1], edge[0]) ) {
         console.log("quad is reflex")
         return null
@@ -267,9 +296,7 @@ function flipEdge(edge) {
     SPLITTRIANGLES.splice(adjTindices[0], 1, newTs[0])
     SPLITTRIANGLES.splice(adjTindices[1], 1, newTs[1])
 
-    console.log("old paths: ", TPATHS)
-
-    console.log("new p0: ", getPath(newTs[0]))
+    //console.log("old paths: ", TPATHS)
 
     // switch old paths for new
     TPATHS.splice(adjTindices[0], 1, getPath(newTs[0]))
@@ -277,10 +304,69 @@ function flipEdge(edge) {
 
     // can i do this? 
 
-    console.log("paths now changed to:", TPATHS)
+    //console.log("paths now changed to:", TPATHS)
 
     d3.select("#path" + adjTindices[0]).attr("d", TPATHS[adjTindices[0]])
     d3.select("#path" + adjTindices[1]).attr("d", TPATHS[adjTindices[1]])
+
+    // remove edge[1] from list of edges for edge[0] and vice versa
+    EDGES[edge[0]].splice(EDGES[edge[0]].indexOf(edge[1]), 1)
+    EDGES[edge[1]].splice(EDGES[edge[1]].indexOf(edge[0]), 1)
+
+    // add new pts to each other's neighbor list
+    EDGES[adjPoints[0]].push(adjPoints[1])
+    EDGES[adjPoints[1]].push(adjPoints[0])
+
+    console.log("edges once flipped:", EDGES)
+
+    console.log("isDelau:", isDelau());
+}
+
+
+function isDelau() {
+    TRIANGLES = DELAU.triangles
+
+    delEdges = []
+    POINTS.forEach(p => {delEdges.push([])}) // i guess
+
+    // console.log("delEdges initially", delEdges)
+
+    for (let j = 0; j < TRIANGLES.length; j+= 3) {
+        if (!delEdges[TRIANGLES[j]].includes(TRIANGLES[j+1])) {
+            delEdges[TRIANGLES[j]].push(TRIANGLES[j+1])
+            delEdges[TRIANGLES[j+1]].push(TRIANGLES[j]) // shouldn't need second check for this right?
+        }
+        if (!delEdges[TRIANGLES[j]].includes(TRIANGLES[j+2])) {
+            delEdges[TRIANGLES[j]].push(TRIANGLES[j+2])
+            delEdges[TRIANGLES[j+2]].push(TRIANGLES[j]) 
+        }
+        if (!delEdges[TRIANGLES[j+1]].includes(TRIANGLES[j+2])) {
+            delEdges[TRIANGLES[j+1]].push(TRIANGLES[j+2])
+            delEdges[TRIANGLES[j+2]].push(TRIANGLES[j+1]) 
+        }
+    }
+
+    console.log("del triangles:", TRIANGLES)
+    console.log("del edges:", delEdges)
+
+    for (let p = 0; p < POINTS.length; p++) {
+        let curr = EDGES[p]
+        //console.log("checking point", p, "'s edges, ", curr)
+        
+        let allFound = true;
+        curr.forEach(e => {
+            let delIdx = delEdges[p].indexOf(e)
+            if (delIdx < 0) { // edge not present
+                allFound = false; // does this return from whole isDelau?
+            }
+            delEdges[p].splice(delIdx, 1)
+        })
+
+        if (!allFound) {return false}
+
+    }
+
+    return true;
 
 }
 
@@ -340,7 +426,7 @@ function clickPoint(d, i) {
 
     if (MODE === "del") {
         console.log("del mode");
-        delPoint(d,i)
+        deletePoint(d,i)
         return;
     }
 
@@ -349,14 +435,14 @@ function clickPoint(d, i) {
     selectedInput.push(i)
     
     if (selectedInput.length > 1) {
-        console.log("received points ", selectedInput)
+        //console.log("received points ", selectedInput)
         // should probs check that the edge actually exists
         flipEdge(selectedInput)
         // change color black
         selectedInput = []
         ptsGroup.selectAll(".rectan").remove()
     } else {
-        console.log("selected input is", selectedInput)
+        //console.log("selected input is", selectedInput)
         ptsGroup
             .append("rect")
             .attr("x", d[0] - 3)
@@ -368,7 +454,7 @@ function clickPoint(d, i) {
     }
 }
 
-function delPoint(d, i) {
+function deletePoint(d, i) {
     console.log("pointsgroup before deletion: ", POINTSGROUP)
     POINTS.splice(i, 1)
     console.log("deleting point ", d)

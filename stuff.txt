@@ -3,16 +3,18 @@ small styling stuff to do later:
  make the hull colored differently 
  be able to hover/click lines instead of points
  show point coord on hover
+ when one pt is selected for flipping, highlight adjacent pts
 
 
 needed features:
 
 
 wanted features:
-- check if curr triangulation is delaunay 
+- show when thing is delaunay?
 - input box to input points (and either way def print a list of pts)
 - clear all pts button
 - handle deletion when only 2 points exist
+- when flipping, check if edges. actually exist
 
 
 what's a halfedge? 
@@ -65,3 +67,6 @@ ok so showTriangulation is fucking up POINTSGROuP somehow so the event no longer
 completed features:
 - click to add a point 
 show the points as dots -> make them always on top
+- check if curr triangulation is delaunay 
+
+had some kind of error where adjTriangles wasn't filling but can't replicate
